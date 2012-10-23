@@ -3,11 +3,11 @@
 in vec4 normal; // World coordinates
 in vec4 coords; // World coordinates
 
-uniform mat4 mMatrix 		= mat4(1.0);
-uniform mat4 mvMatrix		= mat4(1.0);
-uniform mat4 mvpMatrix		= mat4(1.0);
-uniform mat4 pMatrix 		= mat4(1.0);
-uniform mat4 normalMatrix	= mat4(1.0);
+uniform mat4 mMatrix;
+uniform mat4 mvMatrix;
+uniform mat4 mvpMatrix;
+uniform mat4 pMatrix;
+uniform mat4 normalMatrix;
 
 uniform float time 			= 0; // Time passed since launch (in seconds)
 uniform int   specularPower = 1;
@@ -38,7 +38,6 @@ void main(void)
 	// Reflection vector points the opposite direction than you think
 	reflection = normalize(reflect(-lightDir, normal));
 
-
 	float spec = specularPower < 0.0 ? 1.0 / -specularPower : specularPower;
 	spec = spec == 0.0 ? 1.0 : spec;
 	specular = max(
@@ -55,6 +54,5 @@ void main(void)
 	);
 	
 
-	//fragColor = diffuse * diffuseColor + specular;
-	fragColor = vec4(specular);
+	fragColor = diffuse * diffuseColor + specular;
 }

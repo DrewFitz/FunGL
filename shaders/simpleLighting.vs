@@ -10,13 +10,13 @@ uniform mat4 mvpMatrix		= mat4(1.0);
 uniform mat4 projection   	= mat4(1.0);
 uniform mat4 normalMatrix	= mat4(1.0);
 
-uniform float time 			= 0; // Time passed since launch (in seconds)
-uniform int   specularPower = 1;
+uniform float time;
+uniform int   specularPower;
 
-uniform vec4  lightPos 		= vec4(0.0, 0.0, 0.0, 1.0); // World coordinates
-uniform vec4  camera 		= vec4(0.0, 0.0, 0.0, 1.0); // World coordinates
+uniform vec4  lightPos;
+uniform vec4  camera;
 
-uniform vec4  diffuseColor	= vec4(0.4, 0.8, 0.8, 1.0);
+uniform vec4  diffuseColor;
 
 out vec4 normal;
 out vec4 coords;
