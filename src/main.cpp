@@ -85,11 +85,14 @@ void renderLoop()
 
 		torus.update(totalMouseX, totalMouseY);
 
+		// Drawing to multiple "virtual screens"
 		//glViewport(0, 0, 640, 720);
-		torus.draw();
+		//torus.draw();
 		//glViewport(640, 0, 640, 720);
 		//torus.draw();
 		//glViewport(0, 0, 1280, 720);
+
+		torus.draw();
 		
 		//quad.draw();
 
