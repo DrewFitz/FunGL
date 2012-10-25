@@ -23,7 +23,7 @@ void initializeOpenGL()
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
 	glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwOpenWindow(1280, 720, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
+	glfwOpenWindow(1920, 1080, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
 	glfwDisable(GLFW_MOUSE_CURSOR);
 
 	glEnable(GL_DEPTH_TEST);
@@ -34,11 +34,85 @@ void initializeOpenGL()
 	printf("GLSL version:   %s\n", (char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	// Don't vsync
-	//glfwSwapInterval(0);
+	glfwSwapInterval(0);
 }
 
 void renderLoop()
 {
+	GLuint FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	// Setup texture target for FBO rendering
+	GLuint FBOTexture;
+	glGenTextures(1, &FBOTexture);
+	glBindTexture(GL_TEXTURE_2D, FBOTexture);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1920, 1080, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FBOTexture, 0);
+
+	// Setup renderbuffer to hold depth
+	GLuint depthRBO;
+	glGenRenderbuffers(1, &depthRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, depthRBO);
+
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1920, 1080);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRBO);
+
+	// Check if our framebuffer is properly constructed	
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	switch(status)
+	{
+		case GL_FRAMEBUFFER_COMPLETE:
+			printf("Framebuffer complete!\n"); 
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			printf("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT\n"); 
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:    
+			printf("GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT\n"); 
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:    
+			printf("GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER\n"); 
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:    
+			printf("GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER\n"); 
+			break;
+		case GL_FRAMEBUFFER_UNDEFINED:
+			printf("GL_FRAMEBUFFER_UNDEFINED\n"); 
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			printf("GL_FRAMEBUFFER_UNSUPPORTED\n"); 
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+			printf("GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE\n"); 
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+			printf("GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS\n"); 
+			break;
+		case 0:
+			printf("Some error occurred apparently.\n");
+			break;
+
+		default:
+			printf("WTF?!\n");
+			break;
+	}
+
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, FBOTexture);
+
+
+
+
+
 	// used for mouse input
 	int totalMouseX = 0,
 		totalMouseY = 0;
@@ -54,6 +128,7 @@ void renderLoop()
 	// Drawable geometry objects
 	Torus torus;
 	FullscreenQuad quad;
+	glUniform1i(quad.shader.getUniformLocation("tex0"), 0);
 
 	RunLoop fpsLoop([&FC]{
 		std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -61,6 +136,7 @@ void renderLoop()
 	});
 
 	start = frameStart = frameEnd = std::chrono::steady_clock::now();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	int specularPower = 1;
 	while (!glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ))
@@ -80,9 +156,8 @@ void renderLoop()
 		}
 
 
-		glClearColor(1.0, 0.0, 1.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		quad.shader.makeActiveShaderProgram();
+		glUniform1f(quad.shader.getUniformLocation("time"), totalTime);
 		torus.update(totalMouseX, totalMouseY);
 
 		// Drawing to multiple "virtual screens"
@@ -92,9 +167,19 @@ void renderLoop()
 		//torus.draw();
 		//glViewport(0, 0, 1280, 720);
 
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glClearColor(1.0, 0.0, 1.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		torus.draw();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(1.0, 1.0, 1.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		//quad.draw();
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		quad.draw();
 
 		glfwSwapBuffers();
 
