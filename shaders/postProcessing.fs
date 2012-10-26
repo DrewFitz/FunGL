@@ -8,7 +8,7 @@ out vec4 fragColor;
 void main(void)
 {
 	// Screen coordinate 0..1
-	vec2 pixel = vertex.xy / 2.0 + 0.5;
+	vec2 pixel = vertex.xy * 0.5 + 0.5;
 	vec3 color;
 	color.r = texture(tex0, vec2(pixel.x + 0.003, pixel.y)).r;
 	color.g = texture(tex0, vec2(pixel.x + 0.000, pixel.y)).g;

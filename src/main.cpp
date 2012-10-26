@@ -8,8 +8,12 @@
 #include "FrameCounter.h"
 #include "RunLoop.h"
 
+#include "FramebufferObject.h"
 #include "Torus.h"
 #include "FullscreenQuad.h"
+
+int screenWidth = 1920,
+	screenHeight = 1080;
 
 // Boilerplate hiding
 void initializeOpenGL();
@@ -23,7 +27,7 @@ void initializeOpenGL()
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
 	glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwOpenWindow(1920, 1080, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
+	glfwOpenWindow(screenWidth, screenHeight, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
 	glfwDisable(GLFW_MOUSE_CURSOR);
 
 	glEnable(GL_DEPTH_TEST);
@@ -39,80 +43,6 @@ void initializeOpenGL()
 
 void renderLoop()
 {
-	GLuint FBO;
-	glGenFramebuffers(1, &FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-	// Setup texture target for FBO rendering
-	GLuint FBOTexture;
-	glGenTextures(1, &FBOTexture);
-	glBindTexture(GL_TEXTURE_2D, FBOTexture);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1920, 1080, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FBOTexture, 0);
-
-	// Setup renderbuffer to hold depth
-	GLuint depthRBO;
-	glGenRenderbuffers(1, &depthRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, depthRBO);
-
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1920, 1080);
-
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRBO);
-
-	// Check if our framebuffer is properly constructed	
-	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	switch(status)
-	{
-		case GL_FRAMEBUFFER_COMPLETE:
-			printf("Framebuffer complete!\n"); 
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-			printf("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT\n"); 
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:    
-			printf("GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT\n"); 
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:    
-			printf("GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER\n"); 
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:    
-			printf("GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER\n"); 
-			break;
-		case GL_FRAMEBUFFER_UNDEFINED:
-			printf("GL_FRAMEBUFFER_UNDEFINED\n"); 
-			break;
-		case GL_FRAMEBUFFER_UNSUPPORTED:
-			printf("GL_FRAMEBUFFER_UNSUPPORTED\n"); 
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-			printf("GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE\n"); 
-			break;
-		case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-			printf("GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS\n"); 
-			break;
-		case 0:
-			printf("Some error occurred apparently.\n");
-			break;
-
-		default:
-			printf("WTF?!\n");
-			break;
-	}
-
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, FBOTexture);
-
-
-
-
-
 	// used for mouse input
 	int totalMouseX = 0,
 		totalMouseY = 0;
@@ -126,8 +56,12 @@ void renderLoop()
 													   frameEnd;
 
 	// Drawable geometry objects
+	//FramebufferObject FBO(screenWidth, screenHeight);
+	FramebufferObject FBO;
 	Torus torus;
 	FullscreenQuad quad;
+	//glActiveTexture(GL_TEXTURE0);
+	FBO.bindToTextureUnit(0);
 	glUniform1i(quad.shader.getUniformLocation("tex0"), 0);
 
 	RunLoop fpsLoop([&FC]{
@@ -160,21 +94,18 @@ void renderLoop()
 		glUniform1f(quad.shader.getUniformLocation("time"), totalTime);
 		torus.update(totalMouseX, totalMouseY);
 
-		// Drawing to multiple "virtual screens"
-		//glViewport(0, 0, 640, 720);
-		//torus.draw();
-		//glViewport(640, 0, 640, 720);
-		//torus.draw();
-		//glViewport(0, 0, 1280, 720);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		FBO.makeActiveFramebuffer();
 		glClearColor(1.0, 0.0, 1.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		torus.draw();
 
+		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		//glBlitFramebuffer(0, 0, 512, 512, 0, 0, screenWidth, screenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, screenWidth, screenHeight);
 		glClearColor(1.0, 1.0, 1.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		

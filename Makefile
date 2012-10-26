@@ -9,7 +9,7 @@ SOURCEDIR=src
 OBJDIR=build
 
 DRAWABLEOBJECTS=FullscreenQuad.o Torus.o
-ALLOBJECTS=FrameCounter.o Shader.o RunLoop.o $(DRAWABLEOBJECTS)
+ALLOBJECTS=FrameCounter.o Shader.o RunLoop.o FramebufferObject.o $(DRAWABLEOBJECTS)
 
 DRAWABLES=$(addprefix $(OBJDIR)/,$(DRAWABLEOBJECTS))
 ALLOBJECTFILES=$(addprefix $(OBJDIR)/,$(ALLOBJECTS))
