@@ -1,3 +1,7 @@
+/*
+I guess I should note that this version of postProcessing.fs is an adapted
+version of iq's "Postpro" shader from http://www.iquilezles.org/apps/shadertoy/
+*/
 #version 150
 
 in vec4 vertex;
