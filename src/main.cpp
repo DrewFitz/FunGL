@@ -56,13 +56,11 @@ void renderLoop()
 													   frameEnd;
 
 	// Drawable geometry objects
-	//FramebufferObject FBO(screenWidth, screenHeight);
 	FramebufferObject FBO;
 	Torus torus;
 	FullscreenQuad quad;
-	//glActiveTexture(GL_TEXTURE0);
-	FBO.bindToTextureUnit(0);
-	glUniform1i(quad.shader.getUniformLocation("tex0"), 0);
+	FBO.bindToTextureUnit(1);
+	glUniform1i(quad.shader.getUniformLocation("tex0"), 1);
 
 	RunLoop fpsLoop([&FC]{
 		std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -73,7 +71,7 @@ void renderLoop()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 	int specularPower = 1;
-	while (!glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ))
+	while (!glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED))
 	{
 		glfwPollEvents();
 		glfwGetMousePos(&totalMouseX, &totalMouseY);
@@ -99,17 +97,15 @@ void renderLoop()
 		glClearColor(1.0, 0.0, 1.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		torus.draw();
 
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		//glBlitFramebuffer(0, 0, 512, 512, 0, 0, screenWidth, screenHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		// **********
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, screenWidth, screenHeight);
 		glClearColor(1.0, 1.0, 1.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		quad.draw();
 
 		glfwSwapBuffers();

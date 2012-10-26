@@ -1,3 +1,7 @@
+/*
+I guess I should note that this version of postProcessing.fs is an adapted
+version of iq's "Postpro" shader from http://www.iquilezles.org/apps/shadertoy/
+*/
 #version 150
 
 in vec4 vertex;
@@ -10,11 +14,15 @@ void main(void)
 	// Screen coordinate 0..1
 	vec2 pixel = vertex.xy * 0.5 + 0.5;
 	vec3 color;
+
+	// Slow pulsing
+	pixel = 0.5 + (pixel - 0.5) * (0.9 + 0.1 * sin(0.2 * time));
+
+	// Load and shift colors
 	color.r = texture(tex0, vec2(pixel.x + 0.003, pixel.y)).r;
 	color.g = texture(tex0, vec2(pixel.x + 0.000, pixel.y)).g;
 	color.b = texture(tex0, vec2(pixel.x - 0.003, pixel.y)).b;
 
-	pixel = 0.5 + (pixel - 0.5) * (0.9 + 0.1 * sin(0.2 * time));
 
 	// Increase contrast
 	color = clamp(color * 0.5 + 0.6 * color * color, 0.0, 1.0);

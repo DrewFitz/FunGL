@@ -27,7 +27,7 @@ void FramebufferObject::initialize()
 
 	if (!isValid())
 	{
-		switch(glCheckFramebufferStatus(GL_FRAMEBUFFER))
+		switch(lastStatus)
 		{
 			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
 				printf("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT\n"); 
@@ -92,7 +92,7 @@ void FramebufferObject::makeActiveFramebuffer()
 
 void FramebufferObject::bindToTextureUnit(int unit)
 {
-	if (unit > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS -1)
+	if (unit > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 	{
 		printf("Invalid texture unit %d requested for binding FBO %u\n", unit, FBO);
 	}
