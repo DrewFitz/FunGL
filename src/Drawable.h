@@ -25,6 +25,7 @@ protected:
 	unsigned int indexDataArrayLength;
 	
 public:
+	virtual void draw()=0;
 	virtual ~IndexedDrawable() {}
 };
 

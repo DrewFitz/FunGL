@@ -1,7 +1,8 @@
 COMPILER=clang
 NOWARNING=-Weverything -Wno-padded -Wno-unused-parameter -Wno-sign-conversion -Wno-c++98-compat -Wno-conversion -Wno-missing-noreturn
 COMPFLAGS=-std=c++11 -stdlib=libc++ $(NOWARNING)
-LINKFRAMEWORKS=-framework OpenGL -framework Cocoa -framework IOKit
+FRAMEWORKS=OpenGL Cocoa IOKit
+LINKFRAMEWORKS=$(addprefix -framework ,$(FRAMEWORKS))
 LINKFLAGS=-lstdc++ -lglfw $(LINKFRAMEWORKS)
 
 BINDIR=bin

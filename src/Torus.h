@@ -17,7 +17,7 @@ public:
 	~Torus();
 	void setShader(const char* name);
 	void update(int x, int y);
-	virtual void draw();
+	void draw();
 };
 
 #endif /* __TORUS_H__ */

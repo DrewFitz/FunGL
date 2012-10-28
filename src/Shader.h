@@ -27,7 +27,6 @@ public:
 	bool makeActiveShaderProgram();
 	bool validate();
 
-	void getLastError(char *& err);
 	inline GLuint getUniformLocation(const char * name) const;
 	inline GLuint getAttributeLocation(const char * name) const;
 

@@ -12,7 +12,7 @@
 #include "Torus.h"
 #include "FullscreenQuad.h"
 
-int screenWidth = 1920,
+int screenWidth  = 1920,
 	screenHeight = 1080;
 
 // Boilerplate hiding
@@ -27,12 +27,11 @@ void initializeOpenGL()
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
 	glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwOpenWindow(screenWidth, screenHeight, 8, 8, 8, 8, 8, 0, GLFW_WINDOW);
+	glfwOpenWindow(screenWidth, screenHeight, 8, 8, 8, 8, 24, 8, GLFW_WINDOW);
 	glfwDisable(GLFW_MOUSE_CURSOR);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	printf("OpenGL version: %s\n", (char*)glGetString(GL_VERSION));
 	printf("GLSL version:   %s\n", (char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -43,22 +42,26 @@ void initializeOpenGL()
 
 void renderLoop()
 {
+	bool drawUI = true;
 	// used for mouse input
 	int totalMouseX = 0,
-		totalMouseY = 0;
+	totalMouseY = 0;
 
 	// Used for runtime logging
 	float thisFrame = 0.0f, 
-		  totalTime = 0.0f;
+	totalTime = 0.0f;
 	FrameCounter FC;
 	std::chrono::time_point<std::chrono::steady_clock> start, 
 													   frameStart, 
 													   frameEnd;
 
 	// Drawable geometry objects
-	FramebufferObject FBO;
 	Torus torus;
 	FullscreenQuad quad;
+	Drawable *drawables[2];
+	drawables[0] = &torus;
+	drawables[1] = &quad;
+	FramebufferObject FBO;
 	FBO.bindToTextureUnit(1);
 	glUniform1i(quad.shader.getUniformLocation("tex0"), 1);
 
@@ -70,21 +73,36 @@ void renderLoop()
 	start = frameStart = frameEnd = std::chrono::steady_clock::now();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
+	torus.shader.makeActiveShaderProgram();
+	GLuint specularPowerLocation = torus.shader.getUniformLocation("specularPower");
 	int specularPower = 1;
+	bool spaceIsDown = false;
 	while (!glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED))
 	{
 		glfwPollEvents();
 		glfwGetMousePos(&totalMouseX, &totalMouseY);
-		torus.shader.makeActiveShaderProgram();
-		if(glfwGetKey(GLFW_KEY_UP))
+		if(glfwGetKey( GLFW_KEY_UP ))
 		{
 			++specularPower;
-			glUniform1i(torus.shader.getUniformLocation("specularPower"), specularPower);
+			torus.shader.makeActiveShaderProgram();
+			glUniform1i(specularPowerLocation, specularPower);
 		} 
-		else if(glfwGetKey(GLFW_KEY_DOWN))
+		else if(glfwGetKey( GLFW_KEY_DOWN ))
 		{
 			--specularPower;
-			glUniform1i(torus.shader.getUniformLocation("specularPower"), specularPower);
+			torus.shader.makeActiveShaderProgram();
+			glUniform1i(specularPowerLocation, specularPower);
+		}
+
+		if (glfwGetKey( GLFW_KEY_SPACE ))
+		{
+			if (!spaceIsDown)
+			{
+				drawUI = !drawUI;
+				spaceIsDown = true;
+			}
+		} else if (spaceIsDown) {
+			spaceIsDown = false;
 		}
 
 
@@ -92,21 +110,30 @@ void renderLoop()
 		glUniform1f(quad.shader.getUniformLocation("time"), totalTime);
 		torus.update(totalMouseX, totalMouseY);
 
+		if (!drawUI)
+		{
+			glClearColor(1.0, 0.0, 1.0, 1.0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			//torus.draw();
+			drawables[0]->draw();
+		} else {
 
-		FBO.makeActiveFramebuffer();
-		glClearColor(1.0, 0.0, 1.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			// ********** Pass 1
+			FBO.makeActiveFramebuffer();
+			glClearColor(1.0, 0.0, 1.0, 1.0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		torus.draw();
+			drawables[0]->draw();
 
-		// **********
+			// ********** Pass 2
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glViewport(0, 0, screenWidth, screenHeight);
+			glClearColor(1.0, 1.0, 1.0, 1.0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, screenWidth, screenHeight);
-		glClearColor(1.0, 1.0, 1.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		quad.draw();
+			drawables[1]->draw();
+
+		}
 
 		glfwSwapBuffers();
 
@@ -133,5 +160,6 @@ int main(int argc, char* argv[])
 	// Drop into the main render loop
 	renderLoop();
 
+	glfwTerminate();
 	return 0;
 }

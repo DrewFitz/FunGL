@@ -7,9 +7,11 @@
 class FramebufferObject
 {
 private:
-	GLuint FBO, depthRBO, FBOTexture;
-	int _width, _height;
+	GLuint FBO 		  = 0, 
+		   depthRBO   = 0, 
+		   FBOTexture = 0;
 	GLenum lastStatus = 0;
+	int _width, _height;
 	void initialize();
 
 public:
@@ -17,12 +19,10 @@ public:
 	FramebufferObject(int width, int height);
 	~FramebufferObject();
 
-
 	void makeActiveFramebuffer();
 	void bindToTextureUnit(int unit);
 	bool isValid();
 	GLenum status();
-
 };
 
 #endif /* __FRAMEBUFFEROBJECT_H__ */

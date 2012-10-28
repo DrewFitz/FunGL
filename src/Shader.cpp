@@ -97,6 +97,7 @@ bool Shader::loadShaderPairByName(const char* name)
   memcpy(fsName, name, strlen(name));
   sprintf(vsName, "shaders/%s%s", name, ".vs");
   sprintf(fsName, "shaders/%s%s", name, ".fs");
+  printf("Status for shader \"%s\": ", name);
   if(loadVertexShader(vsName) && loadFragmentShader(fsName))
   {
     free(vsName);
@@ -179,16 +180,15 @@ bool Shader::validate()
   }
 }
 
-void Shader::getLastError(char *& err)
-{
-  //TODO
-} 
-
 GLuint Shader::loadShader(const char * const filename, GLenum shaderType)
 {
   char *shaderSource; // String containing shader source code
   long fileSize; // Number of characters in shaderSource
   FILE *shaderFile = fopen(filename, "r"); // Shader file reference
+  if (shaderFile == NULL)
+  {
+    return 0;
+  }
 
   // Get length of file
   fseek(shaderFile, 0, SEEK_END);
@@ -200,14 +200,6 @@ GLuint Shader::loadShader(const char * const filename, GLenum shaderType)
   shaderSource[fileSize] = '\0';
   fread(shaderSource, sizeof(char) * fileSize, fileSize, shaderFile);
   fclose(shaderFile);
-
-  // Debug output
-  #ifdef DEBUG
-  printf("******* Shader source *******\n");
-  printf("%s\n", shaderSource);
-  printf("*****************************\n");
-  #endif
-  
 
   // Create shader object and set its source
   GLuint shaderHandle = glCreateShader(shaderType);
