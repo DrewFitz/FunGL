@@ -1,5 +1,5 @@
 COMPILER=clang
-NOWARNING=-Weverything -Wno-padded -Wno-unused-parameter -Wno-sign-conversion -Wno-c++98-compat -Wno-conversion -Wno-missing-noreturn
+NOWARNING=-Weverything -Wno-weak-vtables -Wno-padded -Wno-unused-parameter -Wno-sign-conversion -Wno-c++98-compat -Wno-conversion -Wno-missing-noreturn
 COMPFLAGS=-std=c++11 -stdlib=libc++ $(NOWARNING)
 FRAMEWORKS=OpenGL Cocoa IOKit
 LINKFRAMEWORKS=$(addprefix -framework ,$(FRAMEWORKS))
