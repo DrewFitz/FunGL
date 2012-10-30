@@ -2,12 +2,14 @@
 
 FullscreenQuad::FullscreenQuad()
 {
+	drawMode = GL_TRIANGLE_STRIP;
 	generateGeometry();
 	setShader("postProcessing");
 }
 
 FullscreenQuad::FullscreenQuad(const char* name)
 {
+	drawMode = GL_TRIANGLE_STRIP;
 	generateGeometry();
 	setShader(name);
 }
@@ -81,13 +83,4 @@ void FullscreenQuad::setShader(const char* name)
 	shader.compile();
 
 	bindGeometry();
-}
-
-void FullscreenQuad::draw()
-{
-	shader.makeActiveShaderProgram();
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLE_STRIP, indexDataArrayLength, GL_UNSIGNED_INT, 0); 
-	glBindVertexArray(0);
-	glUseProgram(0);
 }

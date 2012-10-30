@@ -2,12 +2,14 @@
 
 Torus::Torus()
 {
+	drawMode = GL_TRIANGLE_STRIP;
 	generateGeometry();
 	setShader("simpleLighting");
 }
 
 Torus::Torus(const char* name)
 {
+	drawMode = GL_TRIANGLE_STRIP;
 	generateGeometry();
 	setShader(name);
 }
@@ -80,11 +82,12 @@ void Torus::update(int x, int y)
 					scaleMatrix,
 					normalMatrix,
 					mvpMatrix;
+
 	Matrix::Vector 	yRotationAxis(0.0f, 1.0f, 0.0f), 
 					xRotationAxis(1.0f, 0.0f, 0.0f), 
 					translationVec(0.0f, 0.0f, -10.0f);
 
-	float aspect = 16.0f / 9.0f;
+	const float aspect = 16.0f / 9.0f;
 
 	Matrix::makeIdentityMatrix(mvpMatrix);
 	Matrix::makeRotationMatrix(xRotationMatrix, xRotationAxis, y/100.0f);
@@ -119,14 +122,5 @@ void Torus::update(int x, int y)
 	// Clip coords
 	glUniformMatrix4fv(shader.getUniformLocation("normalMatrix"), 1, GL_FALSE, normalMatrix.m);
 
-	glUseProgram(0);
-}
-
-void Torus::draw()
-{
-	shader.makeActiveShaderProgram();
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLE_STRIP, indexDataArrayLength, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
 	glUseProgram(0);
 }

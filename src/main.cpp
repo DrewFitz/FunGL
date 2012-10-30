@@ -11,6 +11,7 @@
 #include "FramebufferObject.h"
 #include "Torus.h"
 #include "FullscreenQuad.h"
+#include "Model.h"
 
 int screenWidth  = 1920,
 	screenHeight = 1080;
@@ -43,13 +44,14 @@ void initializeOpenGL()
 void renderLoop()
 {
 	bool drawUI = true;
+	printf("UI Mode: %s\n", drawUI ? "on" : "off");
 	// used for mouse input
 	int totalMouseX = 0,
-	totalMouseY = 0;
+		totalMouseY = 0;
 
 	// Used for runtime logging
 	float thisFrame = 0.0f, 
-	totalTime = 0.0f;
+		  totalTime = 0.0f;
 	FrameCounter FC;
 	std::chrono::time_point<std::chrono::steady_clock> start, 
 													   frameStart, 
@@ -58,23 +60,31 @@ void renderLoop()
 	// Drawable geometry objects
 	Torus torus;
 	FullscreenQuad quad;
-	Drawable *drawables[2];
+	Model model("testModel");
+	//model.setShader("debug");
+	Drawable *drawables[3];
 	drawables[0] = &torus;
 	drawables[1] = &quad;
-	FramebufferObject FBO;
+	drawables[2] = &model;
+
+	FramebufferObject FBO(960, 540);
 	FBO.bindToTextureUnit(1);
+	quad.shader.makeActiveShaderProgram();
 	glUniform1i(quad.shader.getUniformLocation("tex0"), 1);
 
+	/*
 	RunLoop fpsLoop([&FC]{
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		FC.print();
 	});
+	*/
 
 	start = frameStart = frameEnd = std::chrono::steady_clock::now();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
+
 	torus.shader.makeActiveShaderProgram();
 	GLuint specularPowerLocation = torus.shader.getUniformLocation("specularPower");
+	glUseProgram(0);
 	int specularPower = 1;
 	bool spaceIsDown = false;
 	while (!glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED))
@@ -99,12 +109,12 @@ void renderLoop()
 			if (!spaceIsDown)
 			{
 				drawUI = !drawUI;
+				printf("UI Mode: %s\n", drawUI ? "on" : "off");
 				spaceIsDown = true;
 			}
 		} else if (spaceIsDown) {
 			spaceIsDown = false;
 		}
-
 
 		quad.shader.makeActiveShaderProgram();
 		glUniform1f(quad.shader.getUniformLocation("time"), totalTime);
@@ -114,7 +124,7 @@ void renderLoop()
 		{
 			glClearColor(1.0, 0.0, 1.0, 1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-			//torus.draw();
+
 			drawables[0]->draw();
 		} else {
 
@@ -135,18 +145,31 @@ void renderLoop()
 
 		}
 
+		/*
+		glClearColor(0.0, 0.0, 0.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		drawables[2]->draw();
+		*/
+		
+
 		glfwSwapBuffers();
 
 		// Now the frame is done being drawn and displayed
 		frameEnd = std::chrono::steady_clock::now();
 		totalTime = (float)std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd-start).count() / std::milli::den;
 		thisFrame = (float)std::chrono::duration_cast<std::chrono::nanoseconds>(frameEnd-frameStart).count() / std::nano::den;
+		if (spaceIsDown)
+		{
+			printf("FPS: %d\n", int(1/thisFrame));
+			
+		}
 		frameStart = frameEnd;
 
-		++FC;
+		//++FC;
 	}
 
-	fpsLoop.stop();
+	//fpsLoop.stop();
 
 	printf("Last frame length:	  %f\n", thisFrame);
 	printf("Total time ticked:	  %f\n", totalTime);

@@ -9,7 +9,7 @@ BINDIR=bin
 SOURCEDIR=src
 OBJDIR=build
 
-DRAWABLEOBJECTS=FullscreenQuad.o Torus.o
+DRAWABLEOBJECTS=FullscreenQuad.o Torus.o Model.o
 ALLOBJECTS=FrameCounter.o Shader.o RunLoop.o FramebufferObject.o $(DRAWABLEOBJECTS)
 
 DRAWABLES=$(addprefix $(OBJDIR)/,$(DRAWABLEOBJECTS))

@@ -14,8 +14,6 @@ public:
 	~FullscreenQuad();
 
 	void setShader(const char* name);
-	void draw();
-		
 };
 
 

@@ -8,14 +8,22 @@ class Drawable
 {
 protected:
 	GLuint VAO;
+	GLenum drawMode = GL_TRIANGLES;
 	GLfloat* vertexDataArray = nullptr;
 	GLfloat* normalDataArray = nullptr;
 	unsigned int vertexDataArrayLength;
 
 public:
 	Shader shader;
-	virtual void draw()=0;
+	Drawable() : VAO(0), vertexDataArrayLength(0) {}
 	virtual ~Drawable() {}
+	virtual void draw() {
+		shader.makeActiveShaderProgram();
+		glBindVertexArray(VAO);
+		glDrawArrays(drawMode, 0, vertexDataArrayLength);
+		glBindVertexArray(0);
+		glUseProgram(0);
+	}
 };
 
 class IndexedDrawable : public Drawable
@@ -25,8 +33,15 @@ protected:
 	unsigned int indexDataArrayLength;
 	
 public:
-	virtual void draw()=0;
+	IndexedDrawable() : indexDataArrayLength(0) {}
 	virtual ~IndexedDrawable() {}
+	virtual void draw() {
+		shader.makeActiveShaderProgram();
+		glBindVertexArray(VAO);
+		glDrawElements(drawMode, indexDataArrayLength, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+		glUseProgram(0);
+	}
 };
 
 

@@ -1,38 +1,5 @@
 #include "Shader.h"
 
-/*
-class Shader
-{
-public:
-  GLuint program;
-  GLuint vertexShader;
-  GLuint fragmentShader;
-
-
-  Shader() : program{0}, vertexShader{0}, fragmentShader{0} {}
-  Shader(const char * const shaderName);
-  Shader(const char * const vertexFilename, const char * const fragmentFilename);
-  ~Shader();
-  Shader(Shader&& other);
-
-  bool loadVertexShader(const char * filename);
-  bool loadFragmentShader(const char * filename);
-  bool loadShaderPairByName(const char* name);
-  
-  bool compile();
-  bool makeActiveShaderProgram();
-  void validate();
-
-  void getLastError(char *& err);
-  inline GLuint getUniformLocation(const char * name) const;
-  inline GLuint getAttributeLocation(const char * name) const;
-
-private:
-  GLuint loadShader(const char * const filename, GLenum shaderType);
-  Shader(const Shader&)=delete;
-};
-*/
-
 Shader::Shader(const char * const shaderName)
 {
   loadShaderPairByName(shaderName);
@@ -90,22 +57,20 @@ bool Shader::loadFragmentShader(const char * filename)
 }
 bool Shader::loadShaderPairByName(const char* name)
 {
-  const unsigned int length = strlen(name);
-  char* vsName = (char*)malloc(length+3);
-  char* fsName = (char*)malloc(length+3);
-  memcpy(vsName, name, strlen(name));
-  memcpy(fsName, name, strlen(name));
-  sprintf(vsName, "shaders/%s%s", name, ".vs");
-  sprintf(fsName, "shaders/%s%s", name, ".fs");
+  const unsigned int length = strlen("resources/shaders/") + strlen(name) + 3;
+  char* vsName = new char[length];
+  char* fsName = new char[length];
+  sprintf(vsName, "resources/shaders/%s%s", name, ".vs");
+  sprintf(fsName, "resources/shaders/%s%s", name, ".fs");
   printf("Status for shader \"%s\": ", name);
   if(loadVertexShader(vsName) && loadFragmentShader(fsName))
   {
-    free(vsName);
-    free(fsName);
+    delete[] vsName;
+    delete[] fsName;
     return true;
   } else {
-    free(vsName);
-    free(fsName);
+    delete[] vsName;
+    delete[] fsName;
     return false;
   }
 }
@@ -160,6 +125,7 @@ bool Shader::makeActiveShaderProgram()
 }
 bool Shader::validate()
 {
+  makeActiveShaderProgram();
   glValidateProgram(program);
   GLint valid;
   glGetProgramiv(program, GL_VALIDATE_STATUS, &valid);
