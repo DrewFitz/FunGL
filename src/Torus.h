@@ -13,9 +13,7 @@ class Torus : public IndexedDrawable
 
 public:
 	Torus();
-	Torus(const char* name);
 	~Torus();
-	void setShader(const char* name);
 	void update(int x, int y);
 };
 

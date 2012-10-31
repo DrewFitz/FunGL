@@ -19,6 +19,77 @@ int screenWidth  = 1920,
 // Boilerplate hiding
 void initializeOpenGL();
 void renderLoop();
+void gprint(const char* text);
+
+
+void gprint(const char* text)
+{
+	Shader textShader;
+	textShader.loadShaderPairByName("text");
+	textShader.compile();
+	textShader.makeActiveShaderProgram();
+
+	char* textBuffer = new char[strlen(text)];
+	for (int i = 0; i < strlen(text); ++i)
+	{
+		char letter = text[i];
+		if (letter > 'a' && letter < 'z')
+			textBuffer[i] = letter - 'a';
+		else if (letter > 'A' && letter < 'Z')
+			textBuffer[i] = letter - 'A';
+		else if (letter > '0' && letter < '9')
+			textBuffer[i] = letter - '0' + (2 * (64 / 5));
+	}
+
+	GLuint textTexture;
+	glGenTextures(1, &textTexture);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_1D, textTexture);
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_R8, strlen(text), 0, GL_RED, GL_BYTE, textBuffer);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_1D, 0);
+
+	GLuint textureAtlas;
+	glGenTextures(1, &textureAtlas);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, textureAtlas);
+	if (glfwLoadTexture2D("resources/images/letters.tga", 0) == GL_TRUE)
+		printf("Texture loaded\n");
+	else	
+		printf("Texture load failed\n");
+
+	glUniform1i(textShader.getUniformLocation("textTexture"), 2);
+	glUniform1i(textShader.getUniformLocation("textAtlas"), 3);
+
+	glUniform2i(textShader.getUniformLocation("atlasDimensions"), 64, 64);
+	glUniform2i(textShader.getUniformLocation("atlasCellDimensions"), 5, 5);
+
+	glUniform2f(textShader.getUniformLocation("drawLocation"), 500.0f, 500.0f);
+	glUniform2f(textShader.getUniformLocation("screenDimensions"), 1920.0f, 1080.0f);
+	glUniform1f(textShader.getUniformLocation("scale"), 10.0f);
+
+
+
+	GLfloat vertices[12] = {0.0, 0.0, 0.0,
+							1.0, 0.0, 0.0,
+							0.0, 1.0, 0.0,
+							1.0, 1.0, 0.0};
+
+	GLuint VAO, vbo;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &vbo);
+
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, 12*sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(textShader.getAttributeLocation("vVertex"));
+	glVertexAttribPointer(textShader.getAttributeLocation("vVertex"), 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	textShader.validate();
+	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 12, strlen(text));
+
+	delete[] textBuffer;
+}
 
 void initializeOpenGL()
 {
@@ -61,15 +132,15 @@ void renderLoop()
 	Torus torus;
 	FullscreenQuad quad;
 	Model model("testModel");
-	//model.setShader("debug");
-	Drawable *drawables[3];
+
+	Drawable* drawables[3];
 	drawables[0] = &torus;
 	drawables[1] = &quad;
 	drawables[2] = &model;
 
 	FramebufferObject FBO(960, 540);
-	FBO.bindToTextureUnit(1);
 	quad.shader.makeActiveShaderProgram();
+	FBO.bindToTextureUnit(1);
 	glUniform1i(quad.shader.getUniformLocation("tex0"), 1);
 
 	/*
@@ -87,8 +158,19 @@ void renderLoop()
 	glUseProgram(0);
 	int specularPower = 1;
 	bool spaceIsDown = false;
+
+	char* text = new char[256];
+	sprintf(text, "hello");
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	gprint(text);
+	glfwSwapBuffers();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	gprint(text);
+
 	while (!glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED))
 	{
+		/*
 		glfwPollEvents();
 		glfwGetMousePos(&totalMouseX, &totalMouseY);
 		if(glfwGetKey( GLFW_KEY_UP ))
@@ -112,7 +194,9 @@ void renderLoop()
 				printf("UI Mode: %s\n", drawUI ? "on" : "off");
 				spaceIsDown = true;
 			}
-		} else if (spaceIsDown) {
+		} 
+		else if (spaceIsDown) 
+		{
 			spaceIsDown = false;
 		}
 
@@ -126,6 +210,7 @@ void renderLoop()
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			drawables[0]->draw();
+			drawables[2]->draw();
 		} else {
 
 			// ********** Pass 1
@@ -145,13 +230,11 @@ void renderLoop()
 
 		}
 
-		/*
-		glClearColor(0.0, 0.0, 0.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	*/	
 
-		drawables[2]->draw();
-		*/
-		
+
+		//sprintf(text, "FPS %d", int(floor(thisFrame)));
+		//gprint(text);
 
 		glfwSwapBuffers();
 

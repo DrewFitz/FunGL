@@ -92,12 +92,15 @@ void FramebufferObject::makeActiveFramebuffer()
 
 void FramebufferObject::bindToTextureUnit(int unit)
 {
-	if (unit > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+	if (unit > GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1 || unit == 0)
 	{
 		printf("Invalid texture unit %d requested for binding FBO %u\n", unit, FBO);
+		return;
 	}
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, FBOTexture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 bool FramebufferObject::isValid()

@@ -4,14 +4,9 @@ Torus::Torus()
 {
 	drawMode = GL_TRIANGLE_STRIP;
 	generateGeometry();
-	setShader("simpleLighting");
-}
-
-Torus::Torus(const char* name)
-{
-	drawMode = GL_TRIANGLE_STRIP;
-	generateGeometry();
-	setShader(name);
+	shader.loadShaderPairByName("simpleLighting");
+	shader.compile();
+	bindGeometry();
 }
 
 Torus::~Torus()
@@ -63,14 +58,6 @@ void Torus::bindGeometry()
 	glBindVertexArray(0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void Torus::setShader(const char* name)
-{
-	shader.loadShaderPairByName(name);
-	shader.compile();
-
-	bindGeometry();
 }
 
 void Torus::update(int x, int y)
