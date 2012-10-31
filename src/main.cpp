@@ -24,71 +24,98 @@ void gprint(const char* text);
 
 void gprint(const char* text)
 {
-	Shader textShader;
-	textShader.loadShaderPairByName("text");
-	textShader.compile();
-	textShader.makeActiveShaderProgram();
+	static Shader textShader;
+	static bool setup = true;
+	static GLuint textTexture, textureAtlas;
+	static GLuint VAO;
+	if (setup)
+	{
+		textShader.loadShaderPairByName("text");
+		textShader.compile();
+		textShader.makeActiveShaderProgram();
 
-	char* textBuffer = new char[strlen(text)];
+		glGenTextures(1, &textTexture);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_1D, textTexture);
+		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		unsigned char* dummy = new unsigned char[255];
+		memset(dummy, 0, sizeof(unsigned char) * 255);
+		glTexImage1D(GL_TEXTURE_1D, 0, GL_RED, 255, 0, GL_RED, GL_UNSIGNED_BYTE, dummy);
+		delete[] dummy;
+
+		glGenTextures(1, &textureAtlas);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, textureAtlas);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		if(GL_TRUE == glfwLoadTexture2D("resources/images/letters.tga", 0))
+			printf("Texture loaded\n");
+		else
+			printf("Texture not loaded\n");
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_1D, 0);
+
+		glUniform1i(textShader.getUniformLocation("textTexture"), 2);
+		glUniform1i(textShader.getUniformLocation("textAtlas"), 3);
+
+		glUniform2i(textShader.getUniformLocation("atlasDimensions"), 64, 64);
+		glUniform2i(textShader.getUniformLocation("atlasCellDimensions"), 5, 6);
+
+		glUniform2f(textShader.getUniformLocation("drawLocation"), 000.0f, 000.0f);
+		glUniform2f(textShader.getUniformLocation("screenDimensions"), 1920.0f, 1080.0f);
+		glUniform1f(textShader.getUniformLocation("scale"), 50.0f);
+
+
+
+		GLfloat vertices[12] = {0.0, 0.0, 0.0,
+								1.0, 0.0, 0.0,
+								0.0, 1.0, 0.0,
+								1.0, 1.0, 0.0};
+
+		GLuint vbo;
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &vbo);
+
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, 12*sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(textShader.getAttributeLocation("vVertex"));
+		glVertexAttribPointer(textShader.getAttributeLocation("vVertex"), 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		setup = false;
+	}
+	unsigned char* textBuffer = new unsigned char[strlen(text)];
 	for (int i = 0; i < strlen(text); ++i)
 	{
 		char letter = text[i];
-		if (letter > 'a' && letter < 'z')
+		if (letter >= 'a' && letter <= 'z')
 			textBuffer[i] = letter - 'a';
-		else if (letter > 'A' && letter < 'Z')
+		else if (letter >= 'A' && letter <= 'Z')
 			textBuffer[i] = letter - 'A';
-		else if (letter > '0' && letter < '9')
-			textBuffer[i] = letter - '0' + (2 * (64 / 5));
+		else if (letter >= '0' && letter <= '9')
+			textBuffer[i] = letter - '0' + 36;
 	}
-
-	GLuint textTexture;
-	glGenTextures(1, &textTexture);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_1D, textTexture);
-	glTexImage1D(GL_TEXTURE_1D, 0, GL_R8, strlen(text), 0, GL_RED, GL_BYTE, textBuffer);
+	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, strlen(text), GL_RED, GL_UNSIGNED_BYTE, textBuffer);
+	delete[] textBuffer;
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_1D, 0);
 
-	GLuint textureAtlas;
-	glGenTextures(1, &textureAtlas);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, textureAtlas);
-	if (glfwLoadTexture2D("resources/images/letters.tga", 0) == GL_TRUE)
-		printf("Texture loaded\n");
-	else	
-		printf("Texture load failed\n");
-
-	glUniform1i(textShader.getUniformLocation("textTexture"), 2);
-	glUniform1i(textShader.getUniformLocation("textAtlas"), 3);
-
-	glUniform2i(textShader.getUniformLocation("atlasDimensions"), 64, 64);
-	glUniform2i(textShader.getUniformLocation("atlasCellDimensions"), 5, 5);
-
-	glUniform2f(textShader.getUniformLocation("drawLocation"), 500.0f, 500.0f);
-	glUniform2f(textShader.getUniformLocation("screenDimensions"), 1920.0f, 1080.0f);
-	glUniform1f(textShader.getUniformLocation("scale"), 10.0f);
-
-
-
-	GLfloat vertices[12] = {0.0, 0.0, 0.0,
-							1.0, 0.0, 0.0,
-							0.0, 1.0, 0.0,
-							1.0, 1.0, 0.0};
-
-	GLuint VAO, vbo;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &vbo);
-
 	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 12*sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(textShader.getAttributeLocation("vVertex"));
-	glVertexAttribPointer(textShader.getAttributeLocation("vVertex"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	textShader.validate();
+	textShader.makeActiveShaderProgram();
+	glUniform1i(textShader.getUniformLocation("stringLength"), strlen(text));
 	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 12, strlen(text));
+	glBindVertexArray(0);
 
-	delete[] textBuffer;
 }
 
 void initializeOpenGL()
@@ -105,6 +132,8 @@ void initializeOpenGL()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	glBlendEquation(GL_MAX);
+
 	printf("OpenGL version: %s\n", (char*)glGetString(GL_VERSION));
 	printf("GLSL version:   %s\n", (char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
@@ -115,7 +144,6 @@ void initializeOpenGL()
 void renderLoop()
 {
 	bool drawUI = true;
-	printf("UI Mode: %s\n", drawUI ? "on" : "off");
 	// used for mouse input
 	int totalMouseX = 0,
 		totalMouseY = 0;
@@ -159,18 +187,14 @@ void renderLoop()
 	int specularPower = 1;
 	bool spaceIsDown = false;
 
-	char* text = new char[256];
-	sprintf(text, "hello");
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	gprint(text);
-	glfwSwapBuffers();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	gprint(text);
+	char text[255];
+	sprintf(text, "start");
 
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+	int gprintCount = 0;
 	while (!glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED))
 	{
-		/*
 		glfwPollEvents();
 		glfwGetMousePos(&totalMouseX, &totalMouseY);
 		if(glfwGetKey( GLFW_KEY_UP ))
@@ -191,7 +215,6 @@ void renderLoop()
 			if (!spaceIsDown)
 			{
 				drawUI = !drawUI;
-				printf("UI Mode: %s\n", drawUI ? "on" : "off");
 				spaceIsDown = true;
 			}
 		} 
@@ -210,7 +233,7 @@ void renderLoop()
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			drawables[0]->draw();
-			drawables[2]->draw();
+			//drawables[2]->draw();
 		} else {
 
 			// ********** Pass 1
@@ -230,11 +253,18 @@ void renderLoop()
 
 		}
 
-	*/	
 
 
-		//sprintf(text, "FPS %d", int(floor(thisFrame)));
-		//gprint(text);
+		if (gprintCount > 100)
+		{
+			sprintf(text, "FPS %d", int(floor(1 / thisFrame)));
+			gprintCount = 0;
+		}
+		++gprintCount;
+
+		glEnable(GL_BLEND);
+		gprint(text);
+		glDisable(GL_BLEND);
 
 		glfwSwapBuffers();
 
@@ -242,11 +272,6 @@ void renderLoop()
 		frameEnd = std::chrono::steady_clock::now();
 		totalTime = (float)std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd-start).count() / std::milli::den;
 		thisFrame = (float)std::chrono::duration_cast<std::chrono::nanoseconds>(frameEnd-frameStart).count() / std::nano::den;
-		if (spaceIsDown)
-		{
-			printf("FPS: %d\n", int(1/thisFrame));
-			
-		}
 		frameStart = frameEnd;
 
 		//++FC;

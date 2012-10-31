@@ -17,5 +17,6 @@ out vec4 fragColor;
 void main(void)
 {
 	fragColor.rgb = texture(textAtlas, uv).rgb;
+
 	fragColor.a = 1.0;
 }
