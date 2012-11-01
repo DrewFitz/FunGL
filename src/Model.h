@@ -2,7 +2,6 @@
 #define __MODEL_H__
 
 #include "Drawable.h"
-#include "Shader.h"
 
 class Model : public Drawable {
 

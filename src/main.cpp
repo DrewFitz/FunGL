@@ -12,6 +12,7 @@
 #include "Torus.h"
 #include "FullscreenQuad.h"
 #include "Model.h"
+#include "Printer.h"
 
 int screenWidth  = 1920,
 	screenHeight = 1080;
@@ -19,104 +20,18 @@ int screenWidth  = 1920,
 // Boilerplate hiding
 void initializeOpenGL();
 void renderLoop();
-void gprint(const char* text);
 
-
-void gprint(const char* text)
-{
-	static Shader textShader;
-	static bool setup = true;
-	static GLuint textTexture, textureAtlas;
-	static GLuint VAO;
-	if (setup)
-	{
-		textShader.loadShaderPairByName("text");
-		textShader.compile();
-		textShader.makeActiveShaderProgram();
-
-		glGenTextures(1, &textTexture);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_1D, textTexture);
-		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		unsigned char* dummy = new unsigned char[255];
-		memset(dummy, 0, sizeof(unsigned char) * 255);
-		glTexImage1D(GL_TEXTURE_1D, 0, GL_RED, 255, 0, GL_RED, GL_UNSIGNED_BYTE, dummy);
-		delete[] dummy;
-
-		glGenTextures(1, &textureAtlas);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, textureAtlas);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		if(GL_TRUE == glfwLoadTexture2D("resources/images/letters.tga", 0))
-			printf("Texture loaded\n");
-		else
-			printf("Texture not loaded\n");
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindTexture(GL_TEXTURE_1D, 0);
-
-		glUniform1i(textShader.getUniformLocation("textTexture"), 2);
-		glUniform1i(textShader.getUniformLocation("textAtlas"), 3);
-
-		glUniform2i(textShader.getUniformLocation("atlasDimensions"), 64, 64);
-		glUniform2i(textShader.getUniformLocation("atlasCellDimensions"), 5, 6);
-
-		glUniform2f(textShader.getUniformLocation("drawLocation"), 000.0f, 000.0f);
-		glUniform2f(textShader.getUniformLocation("screenDimensions"), 1920.0f, 1080.0f);
-		glUniform1f(textShader.getUniformLocation("scale"), 50.0f);
-
-
-
-		GLfloat vertices[12] = {0.0, 0.0, 0.0,
-								1.0, 0.0, 0.0,
-								0.0, 1.0, 0.0,
-								1.0, 1.0, 0.0};
-
-		GLuint vbo;
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &vbo);
-
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, 12*sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(textShader.getAttributeLocation("vVertex"));
-		glVertexAttribPointer(textShader.getAttributeLocation("vVertex"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		setup = false;
-	}
-	unsigned char* textBuffer = new unsigned char[strlen(text)];
-	for (int i = 0; i < strlen(text); ++i)
-	{
-		char letter = text[i];
-		if (letter >= 'a' && letter <= 'z')
-			textBuffer[i] = letter - 'a';
-		else if (letter >= 'A' && letter <= 'Z')
-			textBuffer[i] = letter - 'A';
-		else if (letter >= '0' && letter <= '9')
-			textBuffer[i] = letter - '0' + 36;
-	}
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_1D, textTexture);
-	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, strlen(text), GL_RED, GL_UNSIGNED_BYTE, textBuffer);
-	delete[] textBuffer;
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_1D, 0);
-
-	glBindVertexArray(VAO);
-	textShader.makeActiveShaderProgram();
-	glUniform1i(textShader.getUniformLocation("stringLength"), strlen(text));
-	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 12, strlen(text));
-	glBindVertexArray(0);
-
-}
+// TODO
+/*
+ * load targa manually
+ * move gprint() to class
+ *  '-> make text area class
+ * make ui managing class
+ * make gprint more robust
+ * build up material manager + material shaders
+ * 
+ *
+ */
 
 void initializeOpenGL()
 {
@@ -143,6 +58,36 @@ void initializeOpenGL()
 
 void renderLoop()
 {
+	// Drawable geometry objects
+	Torus torus;
+	FullscreenQuad quad;
+	//Model model("testModel");
+
+	Printer printer;
+
+	Drawable* drawables[3];
+	drawables[0] = &torus;
+	drawables[1] = &quad;
+	//drawables[2] = &model;
+
+	FramebufferObject FBO(960, 540);
+	quad.shader.makeActiveShaderProgram();
+	FBO.bindToTextureUnit(1);
+	glUniform1i(quad.shader.getUniformLocation("tex0"), 1);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	torus.shader.makeActiveShaderProgram();
+	GLuint specularPowerLocation = torus.shader.getUniformLocation("specularPower");
+	glUseProgram(0);
+
+	/////////////
+
+	bool printFlag = false;
+	RunLoop fpsLoop([&printFlag]{
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		printFlag = true;
+	});
+
 	bool drawUI = true;
 	// used for mouse input
 	int totalMouseX = 0,
@@ -151,48 +96,18 @@ void renderLoop()
 	// Used for runtime logging
 	float thisFrame = 0.0f, 
 		  totalTime = 0.0f;
-	FrameCounter FC;
 	std::chrono::time_point<std::chrono::steady_clock> start, 
 													   frameStart, 
 													   frameEnd;
 
-	// Drawable geometry objects
-	Torus torus;
-	FullscreenQuad quad;
-	Model model("testModel");
-
-	Drawable* drawables[3];
-	drawables[0] = &torus;
-	drawables[1] = &quad;
-	drawables[2] = &model;
-
-	FramebufferObject FBO(960, 540);
-	quad.shader.makeActiveShaderProgram();
-	FBO.bindToTextureUnit(1);
-	glUniform1i(quad.shader.getUniformLocation("tex0"), 1);
-
-	/*
-	RunLoop fpsLoop([&FC]{
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-		FC.print();
-	});
-	*/
-
 	start = frameStart = frameEnd = std::chrono::steady_clock::now();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	torus.shader.makeActiveShaderProgram();
-	GLuint specularPowerLocation = torus.shader.getUniformLocation("specularPower");
-	glUseProgram(0);
 	int specularPower = 1;
 	bool spaceIsDown = false;
 
 	char text[255];
 	sprintf(text, "start");
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-	int gprintCount = 0;
 	while (!glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED))
 	{
 		glfwPollEvents();
@@ -202,9 +117,7 @@ void renderLoop()
 			++specularPower;
 			torus.shader.makeActiveShaderProgram();
 			glUniform1i(specularPowerLocation, specularPower);
-		} 
-		else if(glfwGetKey( GLFW_KEY_DOWN ))
-		{
+		} else if(glfwGetKey( GLFW_KEY_DOWN )) {
 			--specularPower;
 			torus.shader.makeActiveShaderProgram();
 			glUniform1i(specularPowerLocation, specularPower);
@@ -212,14 +125,11 @@ void renderLoop()
 
 		if (glfwGetKey( GLFW_KEY_SPACE ))
 		{
-			if (!spaceIsDown)
-			{
+			if (!spaceIsDown) {
 				drawUI = !drawUI;
 				spaceIsDown = true;
 			}
-		} 
-		else if (spaceIsDown) 
-		{
+		} else if (spaceIsDown) {
 			spaceIsDown = false;
 		}
 
@@ -253,18 +163,13 @@ void renderLoop()
 
 		}
 
-
-
-		if (gprintCount > 100)
+		if (printFlag)
 		{
 			sprintf(text, "FPS %d", int(floor(1 / thisFrame)));
-			gprintCount = 0;
+			printFlag = false;
 		}
-		++gprintCount;
 
-		glEnable(GL_BLEND);
-		gprint(text);
-		glDisable(GL_BLEND);
+		printer.print(text);
 
 		glfwSwapBuffers();
 
@@ -274,10 +179,9 @@ void renderLoop()
 		thisFrame = (float)std::chrono::duration_cast<std::chrono::nanoseconds>(frameEnd-frameStart).count() / std::nano::den;
 		frameStart = frameEnd;
 
-		//++FC;
 	}
 
-	//fpsLoop.stop();
+	fpsLoop.stop();
 
 	printf("Last frame length:	  %f\n", thisFrame);
 	printf("Total time ticked:	  %f\n", totalTime);

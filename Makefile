@@ -10,7 +10,7 @@ SOURCEDIR=src
 OBJDIR=build
 
 DRAWABLEOBJECTS=FullscreenQuad.o Torus.o Model.o
-ALLOBJECTS=FrameCounter.o Shader.o RunLoop.o FramebufferObject.o $(DRAWABLEOBJECTS)
+ALLOBJECTS=FrameCounter.o Shader.o RunLoop.o FramebufferObject.o Printer.o $(DRAWABLEOBJECTS)
 
 DRAWABLEOBJECTFILES=$(addprefix $(OBJDIR)/,$(DRAWABLEOBJECTS))
 ALLOBJECTFILES=$(addprefix $(OBJDIR)/,$(ALLOBJECTS))
@@ -42,9 +42,11 @@ $(BINDIR)/GLFWTest: $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) | $(BINDIR)
 	$(COMPILER) $(COMPFLAGS) $(LINKFLAGS) $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) -g -o $(BINDIR)/GLFWTest
 
 # Drawables need these headers
-$(DRAWABLEOBJECTFILES): $(SOURCEDIR)/Drawable.h
+$(DRAWABLEOBJECTFILES): $(SOURCEDIR)/Drawable.h $(SOURCEDIR)/Shader.h
 
 $(OBJDIR)/Torus.o: $(SOURCEDIR)/Geometry.h $(SOURCEDIR)/Matrix.h
+
+$(OBJDIR)/Printer.o: $(SOURCEDIR)/Shader.h 
 
 # Object rules
 $(OBJDIR)/%.o: $(SOURCEDIR)/%.cpp $(SOURCEDIR)/%.h
