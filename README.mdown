@@ -1,0 +1,15 @@
+# FunGL
+
+A simple playground for my OpenGL experiments
+
+
+## TODO
+
+- Configure Makefiles for building on Windows, Linux
+- Flesh out OpenGL wrapping objects further
+- Create efficient renderable scenes
+- Support OBJ models
+- Support more texture formats (PNG, TIFF, BMP, TGA)
+- Remove GLFW dependency
+- Create material shader library
+- Finish this readme

@@ -26,13 +26,13 @@ ALLOBJECTFILES=$(addprefix $(OBJDIR)/,$(ALLOBJECTS))
 # Metatargets
 .PHONY: shortcut all clean 
 
-shortcut: $(BINDIR)/GLFWTest
-	./$(BINDIR)/GLFWTest
+shortcut: $(BINDIR)/FunGL
+	./$(BINDIR)/FunGL
 
-all: $(BINDIR)/GLFWTest
+all: $(BINDIR)/FunGL
 
 clean:
-	rm -f $(BINDIR)/GLFWTest
+	rm -f $(BINDIR)/FunGL
 	rm -f build/*.o
 	rm -rf $(BINDIR)/*.dSYM
 
@@ -40,8 +40,8 @@ clean:
 $(BINDIR):
 	mkdir $(BINDIR)
 
-$(BINDIR)/GLFWTest: $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) $(SOURCEDIR)/TextureUnit.h | $(BINDIR)
-	$(COMPILER) $(COMPFLAGS) $(LINKFLAGS) $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) -g -o $(BINDIR)/GLFWTest
+$(BINDIR)/FunGL: $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) $(SOURCEDIR)/TextureUnit.h | $(BINDIR)
+	$(COMPILER) $(COMPFLAGS) $(LINKFLAGS) $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) -g -o $(BINDIR)/FunGL
 
 # Drawables need these headers
 $(DRAWABLEOBJECTFILES): $(SOURCEDIR)/Drawable.h $(SOURCEDIR)/Shader.h
