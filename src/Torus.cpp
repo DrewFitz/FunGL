@@ -34,8 +34,8 @@ void Torus::generateGeometry()
 void Torus::bindGeometry()
 {
 	shader.makeActiveShaderProgram();
-	GLuint vertexLoc = shader.getAttributeLocation("vVertex");
-	GLuint normalLoc = shader.getAttributeLocation("vNormal");
+	GLuint vertexLoc = shader.getAttributeLocation("vVertex"),
+		   normalLoc = shader.getAttributeLocation("vNormal");
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(3, buffers);

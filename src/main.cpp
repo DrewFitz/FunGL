@@ -13,24 +13,24 @@
 #include "FullscreenQuad.h"
 #include "Model.h"
 #include "Printer.h"
+#include "TextureUnit.h"
 
-int screenWidth  = 1920,
-	screenHeight = 1080;
+int screenWidth  = 1280,
+	screenHeight = 720;
 
 // Boilerplate hiding
 void initializeOpenGL();
 void renderLoop();
 
 // TODO
-/*
- * load targa manually
- * move gprint() to class
- *  '-> make text area class
- * make ui managing class
+/* 
  * make gprint more robust
+ * make scene class (drawing manager)
+ * make global render info class (screen dimensions, etc)
+ * make text area class
+ * make ui managing class
  * build up material manager + material shaders
- * 
- *
+ * load targa manually
  */
 
 void initializeOpenGL()
@@ -63,24 +63,31 @@ void renderLoop()
 	FullscreenQuad quad;
 	//Model model("testModel");
 
-	Printer printer;
+	Printer timePrinter, fpsPrinter;
+	timePrinter.setScale(1.0f);
+	timePrinter.setPosition(0, 12);
+	timePrinter.setScreenDimensions(screenWidth, screenHeight);
+	fpsPrinter.setScale(2.0f);
+	fpsPrinter.setScreenDimensions(screenWidth, screenHeight);
 
 	Drawable* drawables[3];
 	drawables[0] = &torus;
 	drawables[1] = &quad;
 	//drawables[2] = &model;
 
-	FramebufferObject FBO(960, 540);
+	FramebufferObject FBO(screenWidth / 2, screenHeight / 2);
 	quad.shader.makeActiveShaderProgram();
-	FBO.bindToTextureUnit(1);
-	glUniform1i(quad.shader.getUniformLocation("tex0"), 1);
+	int fboTextureUnit = TextureUnit::getNextFreeTextureUnit();
+	printf("fbo texture unit %d\n", fboTextureUnit);
+	FBO.bindToTextureUnit(fboTextureUnit);
+	glUniform1i(quad.shader.getUniformLocation("tex0"), fboTextureUnit);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	torus.shader.makeActiveShaderProgram();
 	GLuint specularPowerLocation = torus.shader.getUniformLocation("specularPower");
 	glUseProgram(0);
 
-	/////////////
+	///////////////
 
 	bool printFlag = false;
 	RunLoop fpsLoop([&printFlag]{
@@ -94,7 +101,7 @@ void renderLoop()
 		totalMouseY = 0;
 
 	// Used for runtime logging
-	float thisFrame = 0.0f, 
+	float thisFrameTime = 0.0f, 
 		  totalTime = 0.0f;
 	std::chrono::time_point<std::chrono::steady_clock> start, 
 													   frameStart, 
@@ -105,8 +112,11 @@ void renderLoop()
 	int specularPower = 1;
 	bool spaceIsDown = false;
 
-	char text[255];
-	sprintf(text, "start");
+	char timeText[255], fpsText[255];
+	sprintf(timeText, "start");
+	sprintf(fpsText, "start");
+
+	///////////////
 
 	while (!glfwGetKey(GLFW_KEY_ESC) && glfwGetWindowParam(GLFW_OPENED))
 	{
@@ -165,28 +175,25 @@ void renderLoop()
 
 		if (printFlag)
 		{
-			sprintf(text, "FPS %d", int(floor(1 / thisFrame)));
+			snprintf(fpsText, 255, "FPS %d", int(floor(1 / thisFrameTime)));
 			printFlag = false;
 		}
+		fpsPrinter.print(fpsText);
 
-		printer.print(text);
+		snprintf(timeText, 255, "Time %02d:%02d", int(floor(totalTime / 60)), int(totalTime) % 60);
+		timePrinter.print(timeText);
 
 		glfwSwapBuffers();
 
 		// Now the frame is done being drawn and displayed
 		frameEnd = std::chrono::steady_clock::now();
-		totalTime = (float)std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd-start).count() / std::milli::den;
-		thisFrame = (float)std::chrono::duration_cast<std::chrono::nanoseconds>(frameEnd-frameStart).count() / std::nano::den;
+		totalTime     = (float)std::chrono::duration_cast<std::chrono::nanoseconds>(frameEnd-start).count()      / std::nano::den;
+		thisFrameTime = (float)std::chrono::duration_cast<std::chrono::nanoseconds>(frameEnd-frameStart).count() / std::nano::den;
 		frameStart = frameEnd;
 
 	}
 
 	fpsLoop.stop();
-
-	printf("Last frame length:	  %f\n", thisFrame);
-	printf("Total time ticked:	  %f\n", totalTime);
-	printf("Final specular power: %d\n", specularPower);
-
 }
 
 int main(int argc, char* argv[])

@@ -1,5 +1,5 @@
 COMPILER=clang
-NOWARNING=-Weverything -Wno-weak-vtables -Wno-padded -Wno-unused-parameter -Wno-sign-conversion -Wno-c++98-compat -Wno-conversion -Wno-missing-noreturn
+NOWARNING=-Weverything -Wno-weak-vtables -Wno-padded -Wno-unused-parameter -Wno-sign-conversion -Wno-c++98-compat -Wno-conversion -Wno-missing-noreturn -Wno-reorder
 COMPFLAGS=-std=c++11 -stdlib=libc++ $(NOWARNING)
 FRAMEWORKS=OpenGL Cocoa IOKit
 LINKFRAMEWORKS=$(addprefix -framework ,$(FRAMEWORKS))
@@ -9,8 +9,10 @@ BINDIR=bin
 SOURCEDIR=src
 OBJDIR=build
 
-DRAWABLEOBJECTS=FullscreenQuad.o Torus.o Model.o
-ALLOBJECTS=FrameCounter.o Shader.o RunLoop.o FramebufferObject.o Printer.o $(DRAWABLEOBJECTS)
+DRAWABLENAMES=FullscreenQuad Torus Model
+OBJECTNAMES=FrameCounter Shader RunLoop FramebufferObject Printer TextureUnit $(DRAWABLENAMES)
+DRAWABLEOBJECTS=$(addsuffix .o,$(DRAWABLENAMES))
+ALLOBJECTS=$(addsuffix .o,$(OBJECTNAMES))
 
 DRAWABLEOBJECTFILES=$(addprefix $(OBJDIR)/,$(DRAWABLEOBJECTS))
 ALLOBJECTFILES=$(addprefix $(OBJDIR)/,$(ALLOBJECTS))
@@ -38,7 +40,7 @@ clean:
 $(BINDIR):
 	mkdir $(BINDIR)
 
-$(BINDIR)/GLFWTest: $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) | $(BINDIR)
+$(BINDIR)/GLFWTest: $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) $(SOURCEDIR)/TextureUnit.h | $(BINDIR)
 	$(COMPILER) $(COMPFLAGS) $(LINKFLAGS) $(SOURCEDIR)/main.cpp $(ALLOBJECTFILES) -g -o $(BINDIR)/GLFWTest
 
 # Drawables need these headers
@@ -46,7 +48,9 @@ $(DRAWABLEOBJECTFILES): $(SOURCEDIR)/Drawable.h $(SOURCEDIR)/Shader.h
 
 $(OBJDIR)/Torus.o: $(SOURCEDIR)/Geometry.h $(SOURCEDIR)/Matrix.h
 
-$(OBJDIR)/Printer.o: $(SOURCEDIR)/Shader.h 
+$(OBJDIR)/Printer.o: $(SOURCEDIR)/Shader.h $(SOURCEDIR)/TextureUnit.h
+
+$(OBJDIR)/FramebufferObject.o: $(SOURCEDIR)/TextureUnit.h
 
 # Object rules
 $(OBJDIR)/%.o: $(SOURCEDIR)/%.cpp $(SOURCEDIR)/%.h
