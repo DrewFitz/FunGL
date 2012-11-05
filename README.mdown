@@ -13,3 +13,5 @@ A simple playground for my OpenGL experiments
 - Remove GLFW dependency
 - Create material shader library
 - Finish this readme
+- Modify printer class for more flexible texture atlases
+  - Maybe create a "render font" file format
