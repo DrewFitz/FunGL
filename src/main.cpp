@@ -22,17 +22,6 @@ int screenWidth  = 1280,
 void initializeOpenGL();
 void renderLoop();
 
-// TODO
-/* 
- * make gprint more robust
- * make scene class (drawing manager)
- * make global render info class (screen dimensions, etc)
- * make text area class
- * make ui managing class
- * build up material manager + material shaders
- * load targa manually
- */
-
 void initializeOpenGL()
 {
 	// OpenGL initialization

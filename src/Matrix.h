@@ -7,7 +7,6 @@
 
 namespace Matrix {
 
-//typedef GLfloat Matrix[16];
 struct Matrix {
 	GLfloat m[16];
 	GLfloat& operator[] (const int& index)
@@ -112,11 +111,11 @@ inline void makeUniformScalingMatrix(Matrix& out, float scale)
 inline void makeProjectionMatrix(Matrix& out, float fov, float near, float far, float aspect)
 {
 	makeIdentityMatrix(out);
-	float e = 1.0f / tanf(fov * (M_PI/360.0f));
+	float e = 1.0 / tanf(1.0/2.0 * fov * (M_PI/180.0f));
 
-	out[0]  = e / aspect;
-	out[5]  = e;
-	out[10] = (far+near) / (near-far);
+	out[0]  = e;
+	out[5]  = e / aspect;
+	out[10] = (near+far) / (near-far);
 	out[11] = -1;
 	out[14] = 2.0f * far * near / (near-far);
 	out[15] = 0;

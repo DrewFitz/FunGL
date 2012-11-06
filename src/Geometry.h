@@ -7,8 +7,14 @@
 #include <cmath>
 
 #ifndef PI
-#define PI (3.141592f)
+ #ifndef M_PI
+  #define PI (3.141592f)
+ #else 
+  #define PI (M_PI)
+ #endif // M_PI
 #endif // PI
+
+namespace Geometry {
 
 inline void makeTorus(float radius, 
 					  float width, 
@@ -97,9 +103,9 @@ inline void makeIndexedTorus(
 
 	verticesLength = 3*rotationalSteps;
 	indicesLength = 2*(rotationalSteps+1);
-	vertices = (GLfloat*)malloc(sizeof(GLfloat)*verticesLength);
-	normals  = (GLfloat*)malloc(sizeof(GLfloat)*verticesLength);
-	indices  = (GLuint*)malloc(sizeof(GLuint)*indicesLength);
+	vertices = new GLfloat[verticesLength];
+	normals  = new GLfloat[verticesLength];
+	indices  = new GLuint[indicesLength];
 
 	for (unsigned int i = 0; i < rotationalSteps; ++i)
 	{
@@ -141,5 +147,7 @@ inline void makeFlatLoop(float radius, float width, unsigned segments, unsigned 
 		out[vertex+4] = -width/2;
 	}
 }
+
+} // namespace Geometry
 
 #endif /* __GEOMETRY_H__ */

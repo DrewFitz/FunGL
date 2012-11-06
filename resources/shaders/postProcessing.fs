@@ -26,7 +26,7 @@ void main(void)
 
 	// Increase contrast
 	color = clamp(color * 0.1 + 0.9 * color * color, 0.0, 1.0);
-	// Vingette
+	// Vignette
 	color *= 0.5 + 8.0 * pixel.x * (1.0 - pixel.x) * pixel.y * (1.0 - pixel.y);
 	// Green tint
 	color *= vec3(0.8, 1.0, 0.7);

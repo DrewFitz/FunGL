@@ -13,5 +13,9 @@ A simple playground for my OpenGL experiments
 - Remove GLFW dependency
 - Create material shader library
 - Finish this readme
-- Modify printer class for more flexible texture atlases
+- make ui managing class
+  - Make text area class
+  - Modify printer class for more flexible texture atlases
   - Maybe create a "render font" file format
+- Create global "renderer info" class (screen res, etc)
+- Make scene class (drawing manager)

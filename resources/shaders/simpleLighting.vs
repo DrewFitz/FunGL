@@ -6,7 +6,7 @@ in vec4 vNormal;
 uniform mat4 mMatrix 		= mat4(1.0);
 uniform mat4 mvMatrix		= mat4(1.0);
 uniform mat4 mvpMatrix		= mat4(1.0);
-uniform mat4 projection   	= mat4(1.0);
+uniform mat4 pMatrix		= mat4(1.0);
 uniform mat4 normalMatrix	= mat4(1.0);
 
 uniform float time;

@@ -13,14 +13,14 @@ Torus::~Torus()
 {
 	glDeleteBuffers(3, buffers);
 	glDeleteVertexArrays(1, &VAO);
-	free(normalDataArray);
-	free(vertexDataArray);
-	free(indexDataArray);
+	delete[] normalDataArray;
+	delete[] vertexDataArray;
+	delete[] indexDataArray;
 }
 
 void Torus::generateGeometry()
 {
-	makeIndexedTorus(0.8f, 
+	Geometry::makeIndexedTorus(0.8f, 
 					 0.2f, 
 					 100, 
 					 30, 
@@ -74,17 +74,17 @@ void Torus::update(int x, int y)
 					xRotationAxis(1.0f, 0.0f, 0.0f), 
 					translationVec(0.0f, 0.0f, -10.0f);
 
-	const float aspect = 16.0f / 9.0f;
+	const float aspect = 9.0f / 16.0f;
 
 	Matrix::makeIdentityMatrix(mvpMatrix);
 	Matrix::makeRotationMatrix(xRotationMatrix, xRotationAxis, y/100.0f);
 	Matrix::makeRotationMatrix(yRotationMatrix, yRotationAxis, x/100.0f);
 	Matrix::makeTranslationMatrix(translationMatrix, translationVec);
 	Matrix::makeUniformScalingMatrix(scaleMatrix, 5.0f);
-	Matrix::makeProjectionMatrix(projectionMatrix, 90.0f, 0.1f, 100.0f, aspect);
+	Matrix::makeProjectionMatrix(projectionMatrix, 125.0f, 0.1f, 100.0f, aspect);
 
 	shader.makeActiveShaderProgram();
-	glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, projectionMatrix.m);
+	glUniformMatrix4fv(shader.getUniformLocation("pMatrix"), 1, GL_FALSE, projectionMatrix.m);
 
 	// Model coordinates
 	Matrix::matrixMultiply(mvpMatrix, mvpMatrix, scaleMatrix);
