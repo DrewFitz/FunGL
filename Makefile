@@ -10,7 +10,7 @@ SOURCEDIR=src
 OBJDIR=build
 
 DRAWABLENAMES=FullscreenQuad Torus Model
-OBJECTNAMES=FrameCounter Shader RunLoop FramebufferObject Printer TextureUnit $(DRAWABLENAMES)
+OBJECTNAMES=FrameCounter Shader RunLoop FramebufferObject Printer TextureUnit RenderInfo $(DRAWABLENAMES)
 DRAWABLEOBJECTS=$(addsuffix .o,$(DRAWABLENAMES))
 ALLOBJECTS=$(addsuffix .o,$(OBJECTNAMES))
 

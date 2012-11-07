@@ -14,9 +14,7 @@
 #include "Model.h"
 #include "Printer.h"
 #include "TextureUnit.h"
-
-int screenWidth  = 1280,
-	screenHeight = 720;
+#include "RenderInfo.h"
 
 // Boilerplate hiding
 void initializeOpenGL();
@@ -24,13 +22,15 @@ void renderLoop();
 
 void initializeOpenGL()
 {
+	RenderInfo::width = 1280;
+	RenderInfo::height = 720;
 	// OpenGL initialization
 	glfwInit();
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
 	glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwOpenWindow(screenWidth, screenHeight, 8, 8, 8, 8, 24, 8, GLFW_WINDOW);
+	glfwOpenWindow(RenderInfo::getWidth(), RenderInfo::getHeight(), 8, 8, 8, 8, 24, 8, GLFW_WINDOW);
 	glfwDisable(GLFW_MOUSE_CURSOR);
 
 	glEnable(GL_DEPTH_TEST);
@@ -56,16 +56,16 @@ void renderLoop()
 	Printer timePrinter, fpsPrinter;
 	timePrinter.setScale(1.0f);
 	timePrinter.setPosition(0, 12);
-	timePrinter.setScreenDimensions(screenWidth, screenHeight);
+	timePrinter.setScreenDimensions(RenderInfo::getWidth(), RenderInfo::getHeight());
 	fpsPrinter.setScale(2.0f);
-	fpsPrinter.setScreenDimensions(screenWidth, screenHeight);
+	fpsPrinter.setScreenDimensions(RenderInfo::getWidth(), RenderInfo::getHeight());
 
 	Drawable* drawables[3];
 	drawables[0] = &torus;
 	drawables[1] = &quad;
 	//drawables[2] = &model;
 
-	FramebufferObject FBO(screenWidth / 2, screenHeight / 2);
+	FramebufferObject FBO(RenderInfo::getWidth() / 2, RenderInfo::getHeight() / 2);
 	quad.shader.makeActiveShaderProgram();
 	int fboTextureUnit = TextureUnit::getNextFreeTextureUnit();
 	printf("fbo texture unit %d\n", fboTextureUnit);
@@ -155,7 +155,7 @@ void renderLoop()
 
 			// ********** Pass 2
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glViewport(0, 0, screenWidth, screenHeight);
+			glViewport(0, 0, RenderInfo::getWidth(), RenderInfo::getHeight());
 			glClearColor(1.0, 1.0, 1.0, 1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
