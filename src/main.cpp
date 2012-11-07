@@ -47,6 +47,7 @@ void initializeOpenGL()
 
 void renderLoop()
 {
+	using namespace std::chrono;
 	// Drawable geometry objects
 	Torus torus;
 	FullscreenQuad quad;
@@ -80,7 +81,7 @@ void renderLoop()
 
 	bool printFlag = false;
 	RunLoop fpsLoop([&printFlag]{
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(seconds(1));
 		printFlag = true;
 	});
 
@@ -92,11 +93,11 @@ void renderLoop()
 	// Used for runtime logging
 	float thisFrameTime = 0.0f, 
 		  totalTime = 0.0f;
-	std::chrono::time_point<std::chrono::steady_clock> start, 
-													   frameStart, 
-													   frameEnd;
+	time_point<steady_clock> start, 
+							 frameStart, 
+							 frameEnd;
 
-	start = frameStart = frameEnd = std::chrono::steady_clock::now();
+	start = frameStart = frameEnd = steady_clock::now();
 
 	int specularPower = 1;
 	bool spaceIsDown = false;
@@ -128,7 +129,7 @@ void renderLoop()
 				drawUI = !drawUI;
 				spaceIsDown = true;
 			}
-		} else if (spaceIsDown) {
+		} else {
 			spaceIsDown = false;
 		}
 
@@ -175,9 +176,9 @@ void renderLoop()
 		glfwSwapBuffers();
 
 		// Now the frame is done being drawn and displayed
-		frameEnd = std::chrono::steady_clock::now();
-		totalTime     = (float)std::chrono::duration_cast<std::chrono::nanoseconds>(frameEnd-start).count()      / std::nano::den;
-		thisFrameTime = (float)std::chrono::duration_cast<std::chrono::nanoseconds>(frameEnd-frameStart).count() / std::nano::den;
+		frameEnd = steady_clock::now();
+		totalTime     = (float)duration_cast<nanoseconds>(frameEnd-start).count()      / std::nano::den;
+		thisFrameTime = (float)duration_cast<nanoseconds>(frameEnd-frameStart).count() / std::nano::den;
 		frameStart = frameEnd;
 
 	}
