@@ -5,18 +5,34 @@ A simple playground for my OpenGL experiments
 
 ## TODO
 
-- Configure Makefiles for building on Windows, Linux
-- Flesh out OpenGL wrapping objects further
-- Create efficient renderable scenes
-- Support OBJ models
-- Support more texture formats (PNG, TIFF, BMP, TGA)
-- Remove GLFW dependency
-- Create material shader library
+### General
+
 - Finish this readme
+- Remove GLFW dependency
+- Configure Makefiles for building on Windows, Linux
+
+### Renderer
+
+- Create global "renderer info" class (screen res, etc)
+- Create more robust model loader class
+- Create scene class (drawing manager)
+	- efficient renderable scenes
+- Create material shader library
 - Make ui manager
-  - Text area, icons, status bars, static elements, etc
+	- Text area
+	- icons
+	- status bars
+	- static elements
 - Modify printer class for more flexible texture atlases
-- Modify Printer::print() to be variadic so I can stop snprintf-ing
 - Maybe create a "render font" file format
-+ Create global "renderer info" class (screen res, etc)
-- Make scene class (drawing manager)
+- Modify Printer::print() to be variadic so I can stop snprintf-ing
+
+### Textures
+
+- Formats:
+	- BMP
+	- TGA
+	- TIFF
+	- PNG
+- Make texture object interact with FBO object
+
