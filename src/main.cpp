@@ -22,8 +22,9 @@ void renderLoop();
 
 void initializeOpenGL()
 {
-	RenderInfo::width = 1280;
+	RenderInfo::width  = 1280;
 	RenderInfo::height = 720;
+
 	// OpenGL initialization
 	glfwInit();
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
@@ -135,6 +136,8 @@ void renderLoop()
 
 		quad.shader.makeActiveShaderProgram();
 		glUniform1f(quad.shader.getUniformLocation("time"), totalTime);
+		torus.shader.makeActiveShaderProgram();
+		glUniform1f(torus.shader.getUniformLocation("time"), totalTime);
 		torus.update(totalMouseX, totalMouseY);
 
 		if (!drawUI)
@@ -165,12 +168,13 @@ void renderLoop()
 
 		if (printFlag)
 		{
-			snprintf(fpsText, 255, "FPS %d", int(floor(1 / thisFrameTime)));
+			snprintf(fpsText, 255, "FPS %d", int(floor(1.0f / thisFrameTime)));
 			printFlag = false;
 		}
+		//snprintf(fpsText, 255, "FPS %d", int(floor(1 / thisFrameTime)));
 		fpsPrinter.print(fpsText);
 
-		snprintf(timeText, 255, "Time %02d:%02d", int(floor(totalTime / 60)), int(totalTime) % 60);
+		snprintf(timeText, 255, "Time %02d:%02d", int(floor(totalTime / 60.0f)), int(totalTime) % 60);
 		timePrinter.print(timeText);
 
 		glfwSwapBuffers();

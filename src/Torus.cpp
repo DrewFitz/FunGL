@@ -20,15 +20,15 @@ Torus::~Torus()
 
 void Torus::generateGeometry()
 {
-	Geometry::makeIndexedTorus(0.8f, 
-					 0.2f, 
-					 100, 
-					 30, 
-					 vertexDataArrayLength, 
-					 vertexDataArray, 
-					 normalDataArray, 
-					 indexDataArrayLength, 
-					 indexDataArray);
+	Geometry::makeIndexedTorus(	0.8f, 
+								0.2f, 
+								100, 
+								30, 
+								vertexDataArrayLength, 
+								vertexDataArray, 
+								normalDataArray, 
+								indexDataArrayLength, 
+								indexDataArray);
 }
 
 void Torus::bindGeometry()
@@ -62,52 +62,50 @@ void Torus::bindGeometry()
 
 void Torus::update(int x, int y)
 {
-	Matrix::Matrix 	xRotationMatrix, 
-					yRotationMatrix, 
-					projectionMatrix, 
-					translationMatrix,
-					scaleMatrix,
-					normalMatrix,
-					mvpMatrix;
+	static glm::mat4 	xRotationMatrix, 
+						yRotationMatrix, 
+						pMatrix, 
+						tMatrix,
+						scaleMatrix,
+						nMatrix,
+						mvpMatrix;
 
-	Matrix::Vector 	yRotationAxis(0.0f, 1.0f, 0.0f), 
-					xRotationAxis(1.0f, 0.0f, 0.0f), 
-					translationVec(0.0f, 0.0f, -10.0f);
+	static glm::vec3 	yAxis			(  0.0f,  1.0f,  0.0f ), 
+						xAxis			(  1.0f,  0.0f,  0.0f ), 
+						translationVec	(  0.0f,  0.0f, -5.0f ),
+						scaleVec		(  1.0f,  1.0f,  1.0f );
 
-	const float aspect = 9.0f / 16.0f;
-
-	Matrix::makeIdentityMatrix(mvpMatrix);
-	Matrix::makeRotationMatrix(xRotationMatrix, xRotationAxis, y/100.0f);
-	Matrix::makeRotationMatrix(yRotationMatrix, yRotationAxis, x/100.0f);
-	Matrix::makeTranslationMatrix(translationMatrix, translationVec);
-	Matrix::makeUniformScalingMatrix(scaleMatrix, 5.0f);
-	Matrix::makeProjectionMatrix(projectionMatrix, 125.0f, 0.1f, 100.0f, aspect);
+	nMatrix = mvpMatrix = glm::mat4(1.0f);
+	xRotationMatrix = glm::rotate(glm::mat4(1.0f), y/10.0f, xAxis);
+	yRotationMatrix = glm::rotate(glm::mat4(1.0f), x/10.0f, yAxis);
+	tMatrix 		= glm::translate(glm::mat4(1.0f), translationVec);
+	scaleMatrix		= glm::scale(scaleVec);
+	pMatrix 		= glm::perspective(45.0f, 16.0f/9.0f, 0.1f, 100.0f);
 
 	shader.makeActiveShaderProgram();
-	glUniformMatrix4fv(shader.getUniformLocation("pMatrix"), 1, GL_FALSE, projectionMatrix.m);
+	glUniformMatrix4fv(shader.getUniformLocation("pMatrix"), 1, GL_FALSE, glm::value_ptr(pMatrix));
 
 	// Model coordinates
-	Matrix::matrixMultiply(mvpMatrix, mvpMatrix, scaleMatrix);
 	// Avoid pseudo-gimbal lock by rotating around x axis first
-	Matrix::matrixMultiply(mvpMatrix, mvpMatrix, xRotationMatrix);
-	Matrix::matrixMultiply(mvpMatrix, mvpMatrix, yRotationMatrix); 
-	Matrix::matrixMultiply(mvpMatrix, mvpMatrix, translationMatrix);
-	glUniformMatrix4fv(shader.getUniformLocation("mMatrix"), 1, GL_FALSE, mvpMatrix.m);
+	mvpMatrix = glm::mat4(1.0f)
+				* tMatrix
+				* yRotationMatrix 
+				* xRotationMatrix 
+				* scaleMatrix
+				* mvpMatrix 
+				;
+	glUniformMatrix4fv(shader.getUniformLocation("mMatrix"), 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 	// World coordinates
 	// View coordinates
-	glUniformMatrix4fv(shader.getUniformLocation("mvMatrix"), 1, GL_FALSE, mvpMatrix.m);
-	Matrix::matrixMultiply(mvpMatrix, mvpMatrix, projectionMatrix);
+	glUniformMatrix4fv(shader.getUniformLocation("mvMatrix"), 1, GL_FALSE, glm::value_ptr(mvpMatrix));
+	mvpMatrix = pMatrix * mvpMatrix;
 	// Clip coordinates
-	glUniformMatrix4fv(shader.getUniformLocation("mvpMatrix"), 1, GL_FALSE, mvpMatrix.m);
+	glUniformMatrix4fv(shader.getUniformLocation("mvpMatrix"), 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
-	Matrix::makeIdentityMatrix(normalMatrix);
 	// Model coords
-	Matrix::matrixMultiply(normalMatrix, normalMatrix, xRotationMatrix);
-	Matrix::matrixMultiply(normalMatrix, normalMatrix, yRotationMatrix);
+	nMatrix = nMatrix * yRotationMatrix * xRotationMatrix;
 	// World coords
-	//Matrix::matrixMultiply(normalMatrix, normalMatrix, projectionMatrix);
-	// Clip coords
-	glUniformMatrix4fv(shader.getUniformLocation("normalMatrix"), 1, GL_FALSE, normalMatrix.m);
+	glUniformMatrix4fv(shader.getUniformLocation("nMatrix"), 1, GL_FALSE, glm::value_ptr(nMatrix));
 
 	glUseProgram(0);
 }

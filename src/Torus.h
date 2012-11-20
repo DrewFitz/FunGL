@@ -3,7 +3,8 @@
 
 #include "Drawable.h"
 #include "Geometry.h"
-#include "Matrix.h"
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 class Torus : public IndexedDrawable
 {
